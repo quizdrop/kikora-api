@@ -18,6 +18,7 @@
 
 plugins {
     kotlin("jvm") version "1.4-M1"
+    maven
 }
 
 group = "dev.cubxity.kikora"
