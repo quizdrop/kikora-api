@@ -16,21 +16,18 @@
  *        along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dev.cubxity.kikora.entity
+package dev.cubxity.kikora.utils
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import dev.cubxity.kikora.entity.KikoraContainerContent
+import java.util.*
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class KikoraEventStep(
-        val expression: Expression,
-        val eventId: Int,
-        val hidden: Boolean,
-        val locked: Boolean,
-        val markedFinal: Boolean
-) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Expression(val humanIn: String, val latex: String, val wrongAlternatives: List<String>?, val reaction: Reaction, val expressionStatus: KikoraExpressionStatus)
+fun List<KikoraContainerContent>.filterLeaf(): Sequence<KikoraContainerContent> = sequence {
+    val queue = LinkedList<KikoraContainerContent>()
+    queue += this@filterLeaf
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Reaction(val reactionId: String, val feedback: String, val display: Boolean, val displayOnce: Boolean)
+    while (queue.isNotEmpty()) {
+        val container = queue.remove()
+        if (container.isLeaf) yield(container)
+        else queue += container.children
+    }
 }

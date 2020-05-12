@@ -16,21 +16,11 @@
  *        along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dev.cubxity.kikora.entity
+package dev.cubxity.kikora.requests
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import dev.cubxity.kikora.KikoraResponse
+import dev.cubxity.kikora.entity.KikoraEventStep
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class KikoraEventStep(
-        val expression: Expression,
-        val eventId: Int,
-        val hidden: Boolean,
-        val locked: Boolean,
-        val markedFinal: Boolean
-) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Expression(val humanIn: String, val latex: String, val wrongAlternatives: List<String>?, val reaction: Reaction, val expressionStatus: KikoraExpressionStatus)
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Reaction(val reactionId: String, val feedback: String, val display: Boolean, val displayOnce: Boolean)
+class KikoraCheckRequest(val containerId: String, val exerciseId: Long, val timeUsedForEvent: Long, val newCalculation: Boolean, val terms: Map<String, String>, languageCode: String) : LocalizedKikoraRequest<KikoraCheckRequest.Response>("check", languageCode) {
+    data class Response(val calculationId: Int, val step: KikoraEventStep) : KikoraResponse
 }

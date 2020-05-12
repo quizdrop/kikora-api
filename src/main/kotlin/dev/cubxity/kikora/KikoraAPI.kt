@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
-import dev.cubxity.kikora.entity.KikoraContainerContent
 import dev.cubxity.kikora.requests.*
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -32,11 +31,14 @@ import io.ktor.client.features.cookies.AcceptAllCookiesStorage
 import io.ktor.client.features.cookies.HttpCookies
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.Json
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readText
 import io.ktor.http.Cookie
+import io.ktor.http.Parameters
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
@@ -123,12 +125,43 @@ class KikoraAPI(private val sessionId: String) {
     suspend fun exercisePerson(containerId: String, exerciseId: String) =
             get(KikoraExercisePersonRequest(exerciseId, containerId, languageCode))
 
+    /**
+     * @param containerId container that the exercise came from
+     * @param exerciseId exercise to check the answer for
+     * @param timeUsedForEvent amount of time used on the exercise (in seconds?)
+     * @param terms terms to submit, the actual answer is usually in the "0" key
+     * @param newCalculation
+     * @see KikoraCheckRequest
+     *
+     * Submit an answer for exercise
+     * https://feide-castor.kikora.no/beta/#/calculation/t/<TILE>/<CONTAINER PATH>/<EXERCISE>
+     */
+    suspend fun check(containerId: String, exerciseId: Long, timeUsedForEvent: Long, terms: Map<String, String>, newCalculation: Boolean = true) =
+            post(KikoraCheckRequest(containerId, exerciseId, timeUsedForEvent, newCalculation, terms, languageCode))
+
     @Throws(KikoraException::class)
     private suspend inline fun <reified R : KikoraResponse> get(request: KikoraRequest<R>): R {
         val res = client.get<HttpResponse>("$ENDPOINT/json2") {
             val obj = ObjectNode(jackson.nodeFactory)
             obj.set(request.id, jackson.valueToTree<ObjectNode>(request))
             parameter("request", obj)
+        }
+        val list: ArrayNode = jackson.readValue(res.readText())
+
+        if (res.status.isSuccess())
+            return jackson.treeToValue(list.first())
+        else
+            throw jackson.treeToValue<KikoraException>(list.first()["exception"])
+    }
+
+    @Throws(KikoraException::class)
+    private suspend inline fun <reified R : KikoraResponse> post(request: KikoraRequest<R>): R {
+        val res = client.post<HttpResponse>("$ENDPOINT/json2") {
+            val obj = ObjectNode(jackson.nodeFactory)
+            obj.set(request.id, jackson.valueToTree<ObjectNode>(request))
+            body = FormDataContent(Parameters.build {
+                append("request", "$obj")
+            })
         }
         val list: ArrayNode = jackson.readValue(res.readText())
 

@@ -16,21 +16,17 @@
  *        along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dev.cubxity.kikora.entity
+package dev.cubxity.kikora.utils
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+object KikoraUtils {
+    fun hashCode(s: String): Int {
+        if (s.isEmpty()) return 0
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class KikoraEventStep(
-        val expression: Expression,
-        val eventId: Int,
-        val hidden: Boolean,
-        val locked: Boolean,
-        val markedFinal: Boolean
-) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Expression(val humanIn: String, val latex: String, val wrongAlternatives: List<String>?, val reaction: Reaction, val expressionStatus: KikoraExpressionStatus)
+        var hash = 0
+        for (c in s) {
+            hash = ((hash shl 5) - hash) + c.toInt()
+        }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Reaction(val reactionId: String, val feedback: String, val display: Boolean, val displayOnce: Boolean)
+        return hash
+    }
 }

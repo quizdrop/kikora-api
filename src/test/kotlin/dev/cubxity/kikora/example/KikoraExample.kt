@@ -19,8 +19,7 @@
 package dev.cubxity.kikora.example
 
 import dev.cubxity.kikora.KikoraAPI
-import dev.cubxity.kikora.entity.KikoraContainerContent
-import java.util.*
+import dev.cubxity.kikora.utils.filterLeaf
 
 /**
  * kikora-api utilizes ktor-client and Kotlin coroutines
@@ -40,7 +39,7 @@ suspend fun main() {
     val containers = api.containerSet(tile.containers.first().containerId).containers.map { it.containerContent }
 
     // Find the first leaf container
-    val container = filterLeaf(containers).first()
+    val container = containers.filterLeaf().first()
     println(container)
 
     // Fetch the content for the selected container
@@ -54,15 +53,4 @@ suspend fun main() {
     // Fetch user's exercise data
     val exercisePerson = api.exercisePerson(container.containerId, "$exerciseId")
     println(exercisePerson)
-}
-
-private fun filterLeaf(containers: List<KikoraContainerContent>): Sequence<KikoraContainerContent> = sequence {
-    val queue = LinkedList<KikoraContainerContent>()
-    queue += containers
-
-    while (queue.isNotEmpty()) {
-        val container = queue.remove()
-        if (container.isLeaf) yield(container)
-        else queue += container.children
-    }
 }
