@@ -31,9 +31,9 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    implementation("io.ktor:ktor-client-core:1.3.1")
-    implementation("io.ktor:ktor-client-jackson:1.3.1")
-    implementation("io.ktor:ktor-client-okhttp:1.3.1")
+    api("io.ktor:ktor-client-core:1.3.1")
+    api("io.ktor:ktor-client-jackson:1.3.1")
+    api("io.ktor:ktor-client-okhttp:1.3.1")
 }
 
 tasks {
